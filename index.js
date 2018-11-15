@@ -3,6 +3,7 @@ const makeDriver = require('request-x-ray')
 const express = require('express')
 const app = express()
 const server = require('http').Server(app)
+const cloudscraper = require('cloudscraper')
 
 const options = {
   headers: {
@@ -17,20 +18,25 @@ x.driver(driver)
 app.get('/', async (req, res) => {
   const url = 'http://www.altcointrader.co.za/'
 
-  const askOrders = await x(url, {
-    askOrders: x('.orderUdBuy', [
-      {
-        price: '.orderUdBPr',
-        volume: '.orderUdBAm'
-      }
-    ])
+  cloudscraper.get(url, async function(error, response, body) {
+    if (error) {
+      console.log('Error occurred')
+    }
+
+    console.log('body: ', body)
+
+    const askOrders = await x(body, {
+      askOrders: x('.orderUdBuy', [
+        {
+          price: '.orderUdBPr',
+          volume: '.orderUdBAm'
+        }
+      ])
+    })
+    console.log('askOrders: ', askOrders)
+
+    res.send(askOrders)
   })
-  console.log('askOrders: ', askOrders)
-
-  const body = await x(url, '*')
-  console.log('body: ', body)
-
-  res.send(body)
 })
 
 const port = process.env.PORT || 5000
