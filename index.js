@@ -25,10 +25,12 @@ app.get('/', async (req, res) => {
       }
     ])
   })
+  console.log('askOrders: ', askOrders)
 
-  console.log(askOrders)
+  const body = await x(url, '*')
+  console.log('body: ', body)
 
-  res.send(askOrders)
+  res.send(body)
 })
 
 const port = process.env.PORT || 5000
