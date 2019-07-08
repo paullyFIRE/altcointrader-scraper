@@ -1,41 +1,79 @@
-var x = require('x-ray')()
 const makeDriver = require('request-x-ray')
 const express = require('express')
 const app = express()
 const server = require('http').Server(app)
 const cloudscraper = require('cloudscraper')
 
-const options = {
-  headers: {
-    'User-Agent':
-      'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'
+const x = require('x-ray')({
+  filters: {
+    formatHistory: value =>
+      typeof value === 'string'
+        ? value
+            .replace(/\n/gi, ' ')
+            .trim()
+            .split(' ')
+        : value
   }
-}
+})
 
-const driver = makeDriver(options)
-x.driver(driver)
+x.driver(
+  makeDriver({
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'
+    }
+  })
+)
 
-app.get('/', async (req, res) => {
-  const url = 'http://www.altcointrader.co.za/'
-
-  cloudscraper.get(url, async function(error, response, body) {
+app.get('/orderbook', async (req, res) => {
+  cloudscraper.get('http://www.altcointrader.co.za/', async function(
+    error,
+    response,
+    body
+  ) {
     if (error) {
       console.log('Error occurred')
     }
 
-    console.log('body: ', body)
-
-    const askOrders = await x(body, {
-      askOrders: x('.orderUdBuy', [
+    const payload = await x(body, {
+      bids: x('.orderUdSell', [
+        {
+          price: '.orderUdSPr',
+          volume: '.orderUdSAm'
+        }
+      ]),
+      asks: x('.orderUdBuy', [
         {
           price: '.orderUdBPr',
           volume: '.orderUdBAm'
         }
       ])
     })
-    console.log('askOrders: ', askOrders)
 
-    res.send(askOrders)
+    res.send(payload)
+  })
+})
+
+app.get('/history', async (req, res) => {
+  cloudscraper.get('http://www.altcointrader.co.za/', async function(
+    error,
+    response,
+    body
+  ) {
+    if (error) {
+      console.log('Error occurred')
+    }
+
+    const historyRows =
+      (await x(body, ['#trade-history > table > tbody > tr | formatHistory'])) || []
+    const formattedRows = historyRows.map(([price, volume, total, time]) => ({
+      price,
+      volume,
+      total,
+      time
+    }))
+
+    res.send(formattedRows)
   })
 })
 
