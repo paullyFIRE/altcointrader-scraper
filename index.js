@@ -4,12 +4,19 @@ const server = require('http').Server(app)
 const cloudscraper = require('cloudscraper')
 const cheerio = require('cheerio')
 
+const options = {
+  uri: 'http://www.altcointrader.co.za/',
+  headers: {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36',
+    'Cache-Control': 'private',
+    Accept:
+      'application/xml,application/xhtml+xml,text/html;q=0.9, text/plain;q=0.8,image/png,*/*;q=0.5'
+  }
+}
+
 app.get('/orderbook', async (req, res) => {
-  cloudscraper.get('http://www.altcointrader.co.za/', async function(
-    error,
-    response,
-    body
-  ) {
+  cloudscraper.get(options, async function(error, response, body) {
     if (error) {
       console.log('error: ', error)
       console.log('Error occurred')
@@ -49,11 +56,7 @@ app.get('/orderbook', async (req, res) => {
 })
 
 app.get('/history', async (req, res) => {
-  cloudscraper.get('http://www.altcointrader.co.za/', async function(
-    error,
-    response,
-    body
-  ) {
+  cloudscraper.get(options, async function(error, response, body) {
     if (error) {
       console.log('Error occurred')
     }
