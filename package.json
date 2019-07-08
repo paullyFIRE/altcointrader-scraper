@@ -1,10 +1,13 @@
 {
-  "name": "altScrape",
+  "name": "altcointrader-scraper",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "pm2 start pm2.yml",
+    "reload": "pm2 reload pm2.yml",
+    "stop": "pm2 stop pm2.yml",
+    "delete": "pm2 delete pm2.yml"
   },
   "keywords": [],
   "author": "Paul Patterson <pddpatterson@gmail.com> (pauldavidpatterson.com)",

@@ -1,0 +1,8 @@
+apps:
+  - script: ./index.js
+    name: 'altcointrader-scraper'
+    watch: true
+    env:
+      NODE_ENV: development
+    env_production:
+      NODE_ENV: production
