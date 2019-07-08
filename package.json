@@ -13,9 +13,8 @@
   "author": "Paul Patterson <pddpatterson@gmail.com> (pauldavidpatterson.com)",
   "license": "ISC",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
     "cloudscraper": "^1.5.0",
-    "express": "^4.16.4",
-    "request-x-ray": "^0.1.4",
-    "x-ray": "^2.3.3"
+    "express": "^4.16.4"
   }
 }

@@ -1,29 +1,8 @@
-const makeDriver = require('request-x-ray')
 const express = require('express')
 const app = express()
 const server = require('http').Server(app)
 const cloudscraper = require('cloudscraper')
-
-const x = require('x-ray')({
-  filters: {
-    formatHistory: value =>
-      typeof value === 'string'
-        ? value
-            .replace(/\n/gi, ' ')
-            .trim()
-            .split(' ')
-        : value
-  }
-})
-
-x.driver(
-  makeDriver({
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'
-    }
-  })
-)
+const cheerio = require('cheerio')
 
 app.get('/orderbook', async (req, res) => {
   cloudscraper.get('http://www.altcointrader.co.za/', async function(
@@ -36,20 +15,34 @@ app.get('/orderbook', async (req, res) => {
       console.log('Error occurred')
     }
 
-    const payload = await x(body, {
-      bids: x('.orderUdSell', [
-        {
-          price: '.orderUdSPr',
-          volume: '.orderUdSAm'
-        }
-      ]),
-      asks: x('.orderUdBuy', [
-        {
-          price: '.orderUdBPr',
-          volume: '.orderUdBAm'
-        }
-      ])
-    })
+    const $ = cheerio.load(body)
+
+    const parseOrders = ({ tableSel, priceSel, volumeSel }) =>
+      Array.from(
+        $(tableSel).map(function() {
+          return {
+            price: $(this)
+              .find(priceSel)
+              .text(),
+            volume: $(this)
+              .find(volumeSel)
+              .text()
+          }
+        })
+      )
+
+    const payload = {
+      asks: parseOrders({
+        tableSel: '.orderUdSell',
+        priceSel: '.orderUdSPr',
+        volumeSel: '.orderUdSAm'
+      }),
+      bids: parseOrders({
+        tableSel: '.orderUdBuy',
+        priceSel: '.orderUdBPr',
+        volumeSel: '.orderUdBAm'
+      })
+    }
 
     res.send(payload)
   })
@@ -65,16 +58,20 @@ app.get('/history', async (req, res) => {
       console.log('Error occurred')
     }
 
-    const historyRows =
-      (await x(body, ['#trade-history > table > tbody > tr | formatHistory'])) || []
-    const formattedRows = historyRows.map(([price, volume, total, time]) => ({
-      price,
-      volume,
-      total,
-      time
-    }))
+    const $ = cheerio.load(body)
 
-    res.send(formattedRows)
+    const payload = Array.from(
+      $('#trade-history > table > tbody > tr').map(function(index, el) {
+        const [price, volume, total, time] = $(el)
+          .text()
+          .split('\n')
+          .filter(e => e.length)
+
+        return { price, volume, total, time }
+      })
+    )
+
+    res.send(payload)
   })
 })
 
