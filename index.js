@@ -18,8 +18,7 @@ const options = {
 app.get('/orderbook', async (req, res) => {
   cloudscraper.get(options, async function(error, response, body) {
     if (error) {
-      console.log('error: ', error)
-      console.log('Error occurred')
+      return res.send({ error, response })
     }
 
     const $ = cheerio.load(body)
@@ -58,7 +57,7 @@ app.get('/orderbook', async (req, res) => {
 app.get('/history', async (req, res) => {
   cloudscraper.get(options, async function(error, response, body) {
     if (error) {
-      console.log('Error occurred')
+      return res.send({ error, response })
     }
 
     const $ = cheerio.load(body)
