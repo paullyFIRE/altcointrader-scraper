@@ -32,6 +32,7 @@ app.get('/orderbook', async (req, res) => {
     body
   ) {
     if (error) {
+      console.log('error: ', error)
       console.log('Error occurred')
     }
 
